@@ -1,0 +1,24 @@
+{
+  "name": "@jalurumekso/crudite",
+  "version": "1.0.0",
+  "description": "A simple promise-based CRUD wrapper for Node-MySQL2",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jprumekso/crudite"
+  },
+  "keywords": [
+    "node",
+    "mysql2",
+    "crud",
+    "database"
+  ],
+  "author": "Jalu Pujo R",
+  "license": "ISC",
+  "dependencies": {
+    "mysql2": "^2.2.5"
+  }
+}
