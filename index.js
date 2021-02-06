@@ -44,7 +44,6 @@ database.query = (sql, columnVal = null) => {
     sql += `INSERT INTO ${table} `;
     sql += `(${columns.join()}) `;
     sql += `VALUES(${preparedColumn.join(', ')}) `;
-    console.log(sql);
     // Run query
     return database.query(sql, columnValue);
   }
@@ -60,8 +59,6 @@ database.read = async (table, params = {}) => {
   if (id) {
     sql += ` WHERE id = ${id}`;
   }
-
-  console.log(sql);
 
   return database.query(sql);
 };
@@ -90,8 +87,6 @@ database.delete = async (table, id) => {
   let sql = "";
   sql += `DELETE FROM ${table} `;
   sql += `WHERE id = ?`;
-
-  console.log(sql);
 
   // Run query
   return database.query(sql, id);
