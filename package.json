@@ -4,7 +4,7 @@
   "description": "A simple promise-based CRUD wrapper for Node-MySQL2",
   "main": "index.js",
   "scripts": {
-    "test": "node test.js"
+    "test": "echo \"No test specified\""
   },
   "repository": {
     "type": "git",
