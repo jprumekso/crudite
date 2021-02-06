@@ -2,9 +2,11 @@
 
 > A simple promise-based query wrapper to perform basic CRUD on node-mysql2 easily.
 
+
 **Disclaimer**
 
 This library is still at a very early stage. Use it at your own risk. 
+
 
 **Table of contents**
 
@@ -54,14 +56,14 @@ npm install crudite
 
 ## Setup
 
-To use Crudite, first we need to import it (obivously) then we call connect() method and passing the config object (like the one that we usually pass to the createPool() method of mysql2) and assign it into a variable.
+First, import Crudite and assign it to a variable. Then we call connect() method with passing the config object (like the one that we usually pass to the createPool() method of mysql2).
 
 ```js
 // import crudite
-const crudite = require("crudite");
+const db = require("crudite");
 
 // create the connection to database
-const db = crudite.connect({
+db.connect({
   host: "localhost",
   user: "root",
   password: "secret",
@@ -70,6 +72,8 @@ const db = crudite.connect({
 ```
 
 ## CRUD
+
+To perform the crud operation, we simply just call the available crud method on the variable that bind to the Crudite. In our example above, it's the `db`.
 
 ### Create
 
