@@ -2,11 +2,19 @@
 
 > A simple promise-based query wrapper to perform basic CRUD on node-mysql2 easily.
 
+**Disclaimer**
+
+This library is still at a very early stage. Use it at your own risk. 
+
 **Table of contents**
 
 - [Why Crudite](#why-crudite)
 - [Installation](#installation)
-- [Promise-based CRUD](#using-promise)
+- [Setup](#setup)
+- [CRUD](#crud)
+- [Raw Query](#raw-query)
+- [Configuration](#configuration)
+- [Roadmap](#roadmap)
 - [Acknowledgements](#acknowledgements)
 - [Contributing](#contributing)
 
@@ -16,7 +24,7 @@ MySQL2 is a great library that allow us to use MySQL on Node easily. To perform 
 
 ```js
 // simple query
-connection.query(
+db.query(
   'SELECT * FROM `table`,
   function (err, results, fields) {
     console.log(results); // results contains rows returned by server
@@ -29,14 +37,11 @@ But, what if you could write something like this instead?
 
 ```js
 // simple read query
-connection
-  .read("table")
-  .then((results) => {
-    console.log(results);
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+db.read("table").then((results) => {
+  console.log(results);
+}).catch((err) => {
+  console.log(err);
+});
 ```
 
 Even more simple isn't it?
@@ -47,66 +52,130 @@ Even more simple isn't it?
 npm install crudite
 ```
 
-## Using Promise
+## Setup
+
+To use Crudite, first we need to import it (obivously) then we call connect() method and passing the config object (like the one that we usually pass to the createPool() method of mysql2) and assign it into a variable.
 
 ```js
-// get the client
+// import crudite
 const crudite = require("crudite");
 
 // create the connection to database
-const connection = crudite.createConnection({
+const db = crudite.connect({
   host: "localhost",
   user: "root",
   password: "secret",
   database: "test",
 });
+```
 
-/****** READ ******/
+## CRUD
 
-// Retrieve all entries with all column
-connection
-  .read("table")
-  .then((results) => {
-    console.log(results);
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+### Create
 
-// Retrieve all entries with certain column
-connection
-  .read("table", { fields: ["column1", "column2"] })
-  .then((results) => {
-    console.log(results);
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+To create an entry we need to pass the table name (string) as the first argument and an object with a property named data that contain the key-value pair for each table column as second argument:
 
-// Retrieve entry by id
-connection
-  .read("table", { id: 1 })
-  .then((results) => {
-    console.log(results);
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+```js
+db.create("table", { data: { column1: "value", column2: "value" } })
+.then((results) => {
+  console.log(results);
+}).catch((err) => {
+  console.log(err);
+});
+```
 
-// Retrieved entry by id with certain column
-connection
-  .read("table", { id: 1, fields: ["column1", "column2"] })
-  .then((results) => {
-    console.log(results);
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+### Read
+
+To retrieve all entries, we call read() method on the crudite.createConnection() and passing the table name as argument:
+
+```js
+db.read("table").then((results) => {
+  console.log(results);
+}).catch((err) => {
+  console.log(err);
+});
+```
+
+To retrieve an entry by id, we add the second parameter which is an object with id property and its value:
+
+```js
+db.read("table", { id: 1 })
+.then((results) => {
+  console.log(results);
+}).catch((err) => {
+  console.log(err);
+});
+```
+
+If we want to specify what column returned, add fields property to the second parameter:
+
+```js
+db.read("table", { id: 1, fields: ["column1", "column2"] })
+.then((results) => {
+  console.log(results);
+}).catch((err) => {
+  console.log(err);
+});
+```
+
+### Update
+
+To update an entry we pass an object with id (integer) and data (object that contain key-value pair of the updated column) property:
+
+```js
+db.update("table", { id: 1, data: { column1: "Value1", column2: "value" } })
+.then((results) => {
+  console.log(results);
+}).catch((err) => {
+  console.log(err);
+});
+```
+
+### Delete
+
+To delete we only need to pass the id of the entry as the second argument:
+
+```js
+db.delete("table", id)
+.then((results) => {
+  console.log(results);
+}).catch((err) => {
+  console.log(err);
+});
+```
+
+## Raw Query
+
+Need more than basic CRUD query such as a join or are you more comfortable writing raw sql instead? We got you covered, just use the query() method.
+
+```js
+db.query("SELECT table1.column, table2.column FROM table1 JOIN table2 ON table1.column = table2.column")
+.then((results) => {
+  console.log(results);
+}).catch((err) => {
+  console.log(err);
+});
+```
+
+You can even use prepared statement:
+```js
+db.query("INSERT INTO table (column1, column2) VALUES (?, ?)", ['value1', 'value2'])
+.then((results) => {
+  console.log(results);
+}).catch((err) => {
+  console.log(err);
+});
 ```
 
 ## Configuration
 
 Configuration for Crudite is basically a config object that you provide to MySQL2 createPool() method. You should check their API documentation to see all available API options.
+
+## Roadmap
+
+- Perform crud in bulk
+- Search feature for read operation
+- Enable user to specify 'where' column for read, update, and delete
 
 ## Acknowledgements
 
@@ -115,4 +184,4 @@ Configuration for Crudite is basically a config object that you provide to MySQL
 
 ## Contributing
 
-Found bug or want to improve something in `crudite`? Email me at jalurumekso@gmail.com
+Found bug or want to improve `crudite`? Email me at jalurumekso@gmail.com

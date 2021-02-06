@@ -1,6 +1,6 @@
 {
   "name": "crudite",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple promise-based CRUD wrapper for Node-MySQL2",
   "main": "index.js",
   "scripts": {
