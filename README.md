@@ -59,7 +59,7 @@ First, import Crudite and assign it to a variable. Then we instantiate Crudite b
 
 ```js
 // import Crudite
-const Crudite = require("crudite");
+const Crudite = require("Crudite");
 
 // Instantiate Crudite 
 const db = Crudite({
