@@ -1,21 +1,28 @@
 const mysql = require("mysql2");
 
-const database = {};
+class Crudite {
+  // Init the connection here
+  constructor(config) {
+    this.connection = mysql.createPool(config);
+  }
 
-// define database property
-database.connection = null;
+  // Method to run raw query
+  query(sql, columnVal = null) {
+    // If columnVal is present, it means that the user want to use prepared statement, hence call execute()
+    if (columnVal) {
+      return new Promise((resolve, reject) => {
+        this.connection.execute(sql, columnVal, (err, rows) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve(rows);
+        });
+      });
+    }
 
-// Method to connect to database
-database.connect = (config) => {
-  database.connection = mysql.createPool(config);
-};
-
-// Raw query
-database.query = (sql, columnVal = null) => {
-
-  if(columnVal) {
+    // If only sql is provided, it means that the user want to run simple read query
     return new Promise((resolve, reject) => {
-      database.connection.execute(sql, columnVal, (err, rows) => {
+      this.connection.query(sql, (err, rows) => {
         if (err) {
           return reject(err);
         }
@@ -24,72 +31,65 @@ database.query = (sql, columnVal = null) => {
     });
   }
 
-  return new Promise((resolve, reject) => {
-    database.connection.query(sql, (err, rows) => {
-      if (err) {
-        return reject(err);
-      }
-      resolve(rows);
-    });
-  });
-};
-
-  database.create = async (table, data) => {
+  create(table, data) {
     // Extract all column that'll be populated
     const columns = Object.keys(data);
-    const preparedColumn = columns.map(column => `${column} = ?`);
-    const columnValue = columns.map((column) => data[column]);
+    const placeholders = columns.map(() => "?");
+    const values = columns.map((column) => data[column]);
     // Prepare SQL
     let sql = "";
     sql += `INSERT INTO ${table} `;
-    sql += `(${columns.join()}) `;
-    sql += `VALUES(${preparedColumn.join(', ')}) `;
+    sql += `(${columns.join(", ")}) `;
+    sql += `VALUES (${placeholders.join(", ")}) `;
+    console.log(sql);
     // Run query
-    return database.query(sql, columnValue);
+    return this.query(sql, values);
   }
 
-database.read = async (table, params = {}) => {
+  read(table, params = {}) {
+    const { id, fields } = params;
 
-  const { id, fields } = params;
+    let sql = "";
+    sql += `SELECT ${fields ? fields.join(", ") : "*"} `;
+    sql += `FROM ${table}`;
 
-  let sql = "";
-  sql += `SELECT ${fields ? fields.join(", ") : "*"} `;
-  sql += `FROM ${table}`;
+    if (id) {
+      sql += ` WHERE id = ${id}`;
+    }
 
-  if (id) {
+    return this.query(sql);
+  }
+
+  update(table, params) {
+    const { id, data } = params;
+    // Extract all column that'll be updated
+    const columns = Object.keys(data);
+    // Compose a prepared statement for each column
+    const placeholders = columns.map((column) => `${column} = ?`);
+    // Extract all intended value for each column
+    const values = columns.map((column) => data[column]);
+
+    // Prepare query
+    let sql = "";
+    sql += `UPDATE ${table} SET `;
+    sql += placeholders.join(", ");
     sql += ` WHERE id = ${id}`;
+
+    console.log(sql);
+    // Run query
+    return this.query(sql, values);
   }
 
-  return database.query(sql);
-};
+  delete(table, params) {
+    const { id } = params;
+    // Prepare query
+    let sql = "";
+    sql += `DELETE FROM ${table} `;
+    sql += `WHERE id = ?`;
 
-database.update = async (table, params) => {
-  const {id, data} = params;
-  // Extract all column that'll be updated
-  const columns = Object.keys(data);
-  // Compose a prepared statement for each column
-  const preparedColumn = columns.map((column) => `${column} = ?`);
-  // Extract all intended value for each column
-  const columnValue = columns.map((column) => data[column]);
-
-  // Prepare query
-  let sql = "";
-  sql += `UPDATE ${table} SET `;
-  sql += preparedColumn.join(", ");
-  sql += ` WHERE id = ${id}`;
-
-  // Run query
-  return database.query(sql, columnValue);
-};
-
-database.delete = async (table, id) => {
-  // Prepare query
-  let sql = "";
-  sql += `DELETE FROM ${table} `;
-  sql += `WHERE id = ?`;
-
-  // Run query
-  return database.query(sql, id);
+    // Run query
+    return this.query(sql, [id]);
+  }
 }
 
-module.exports = database;
+module.exports = Crudite;

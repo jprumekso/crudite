@@ -22,7 +22,7 @@ This library is still at a very early stage. Use it at your own risk.
 
 ## Why Crudite
 
-MySQL2 is a great library that allow us to use MySQL on Node easily. To perform a crud operation you'd write something like this:
+MySQL2 is a great library that allow us to use MySQL on Node easily. To perform a crud operation you'd write the query like this:
 
 ```js
 // simple query
@@ -35,18 +35,17 @@ db.query(
 );
 ```
 
-But, what if you could write something like this instead?
+But, what if you could just call `read()` instead of `SELECT ...`, call `create()` instead of `INSERT INTO ...`, call `update()` instead of `UPDATE table SET column = value...` everytime you perform CRUD? That would be great isn't it?
+That's the purpose of this library. It provides us a simple promise-based method to perform CRUD on MySQL2.
 
 ```js
-// simple read query
+// Crudite way of reading MySQL table
 db.read("table").then((results) => {
   console.log(results);
 }).catch((err) => {
   console.log(err);
 });
 ```
-
-Even more simple isn't it?
 
 ## Installation
 
@@ -56,14 +55,14 @@ npm install crudite
 
 ## Setup
 
-First, import Crudite and assign it to a variable. Then we call connect() method with passing the config object (like the one that we usually pass to the createPool() method of mysql2).
+First, import Crudite and assign it to a variable. Then we instantiate Crudite by passing the config object (like the one that we usually pass to the createPool() method of mysql2).
 
 ```js
-// import crudite
-const db = require("crudite");
+// import Crudite
+const Crudite = require("crudite");
 
-// create the connection to database
-db.connect({
+// Instantiate Crudite 
+const db = Crudite({
   host: "localhost",
   user: "root",
   password: "secret",
@@ -73,11 +72,11 @@ db.connect({
 
 ## CRUD
 
-To perform the crud operation, we simply just call the available crud method on the variable that bind to the Crudite. In our example above, it's the `db`.
+To perform CRUD, we simply call the available crud method on the Crudite instance. In our example above, it's the `db`.
 
 ### Create
 
-To create an entry we need to pass the table name (string) as the first argument and an object with a property named data that contain the key-value pair for each table column as second argument:
+To create an entry we need to pass the table name (string) as the first argument and an object with a property named data - that contain the key-value pair for each table column - as second argument:
 
 ```js
 db.create("table", { data: { column1: "value", column2: "value" } })
@@ -90,7 +89,7 @@ db.create("table", { data: { column1: "value", column2: "value" } })
 
 ### Read
 
-To retrieve all entries, we call read() method on the crudite.createConnection() and passing the table name as argument:
+To retrieve all entries, we call read() method and pass the table name as an argument:
 
 ```js
 db.read("table").then((results) => {
@@ -100,7 +99,7 @@ db.read("table").then((results) => {
 });
 ```
 
-To retrieve an entry by id, we add the second parameter which is an object with id property and its value:
+To retrieve an entry by id, we add the second argument which is an object with id property and (obviously) its value:
 
 ```js
 db.read("table", { id: 1 })
@@ -124,7 +123,7 @@ db.read("table", { id: 1, fields: ["column1", "column2"] })
 
 ### Update
 
-To update an entry we pass an object with id (integer) and data (object that contain key-value pair of the updated column) property:
+To update an entry, we pass an object with id (integer) and data (object that contain key-value pair of the updated column) property:
 
 ```js
 db.update("table", { id: 1, data: { column1: "Value1", column2: "value" } })
@@ -137,10 +136,10 @@ db.update("table", { id: 1, data: { column1: "Value1", column2: "value" } })
 
 ### Delete
 
-To delete we only need to pass the id of the entry as the second argument:
+To delete an entry, we pass the table name as first argument and object with id property as second argument:
 
 ```js
-db.delete("table", id)
+db.delete("table", { id: 1 })
 .then((results) => {
   console.log(results);
 }).catch((err) => {
@@ -179,7 +178,7 @@ Configuration for Crudite is basically a config object that you provide to MySQL
 
 - Perform crud in bulk
 - Search feature for read operation
-- Enable user to specify 'where' column for read, update, and delete
+- Enable user to specify the 'where' column for read, update, and delete
 
 ## Acknowledgements
 
