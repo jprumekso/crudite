@@ -1,274 +1,118 @@
 ## Node MySQL 2 Crudite
 
-> A simple query wrapper to perform basic CRUD for node-mysql2 easily. Supports search, batch insert/update [much more](https://github.com/jprumekso/crudite/tree/master/documentation)
+> A simple promise-based query wrapper to perform basic CRUD on node-mysql2 easily.
 
 **Table of contents**
 
-- [History and Why Crudite](#history-and-why-mysql2)
+- [Why Crudite](#why-crudite)
 - [Installation](#installation)
-- [First Query](#first-query)
-- [Documentation](#documentation)
+- [Promise-based CRUD](#using-promise)
 - [Acknowledgements](#acknowledgements)
 - [Contributing](#contributing)
 
-## History and Why MySQL2
+## Why Crudite
 
-MySQL2 project is a continuation of [MySQL-Native][mysql-native]. Protocol parser code was rewritten from scratch and api changed to match popular [mysqljs/mysql][node-mysql]. MySQL2 team is working together with [mysqljs/mysql][node-mysql] team to factor out shared code and move it under [mysqljs][node-mysql] organisation.
+MySQL2 is a great library that allow us to use MySQL on Node easily. To perform a crud operation you'd write something like this:
 
-MySQL2 is mostly API compatible with [mysqljs][node-mysql] and supports majority of features. MySQL2 also offers these additional features
+```js
+// simple query
+connection.query(
+  'SELECT * FROM `table`,
+  function (err, results, fields) {
+    console.log(results); // results contains rows returned by server
+    console.log(fields); // fields contains extra meta data about results, if available
+  }
+);
+```
 
-- Faster / Better Performance
-- [Prepared Statements](https://github.com/sidorares/node-mysql2/tree/master/documentation/Prepared-Statements.md)
-- MySQL Binary Log Protocol
-- [MySQL Server](https://github.com/sidorares/node-mysql2/tree/master/documentation/MySQL-Server.md)
-- Extended support for Encoding and Collation
-- [Promise Wrapper](https://github.com/sidorares/node-mysql2/tree/master/documentation/Promise-Wrapper.md)
-- Compression
-- SSL and [Authentication Switch](https://github.com/sidorares/node-mysql2/tree/master/documentation/Authentication-Switch.md)
-- [Custom Streams](https://github.com/sidorares/node-mysql2/tree/master/documentation/Extras.md)
-- [Pooling](#using-connection-pools)
+But, what if you could write something like this instead?
+
+```js
+// simple read query
+connection
+  .read("table")
+  .then((results) => {
+    console.log(results);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+```
+
+Even more simple isn't it?
 
 ## Installation
 
-MySQL2 is free from native bindings and can be installed on Linux, Mac OS or Windows without any issues.
-
 ```bash
-npm install --save mysql2
+npm install crudite
 ```
 
-## First Query
+## Using Promise
 
 ```js
 // get the client
-const mysql = require("mysql2");
+const crudite = require("crudite");
 
 // create the connection to database
-const connection = mysql.createConnection({
+const connection = crudite.createConnection({
   host: "localhost",
   user: "root",
+  password: "secret",
   database: "test",
 });
 
-// simple query
-connection.query(
-  'SELECT * FROM `table` WHERE `name` = "Page" AND `age` > 45',
-  function (err, results, fields) {
-    console.log(results); // results contains rows returned by server
-    console.log(fields); // fields contains extra meta data about results, if available
-  }
-);
+/****** READ ******/
 
-// with placeholder
-connection.query(
-  "SELECT * FROM `table` WHERE `name` = ? AND `age` > ?",
-  ["Page", 45],
-  function (err, results) {
+// Retrieve all entries with all column
+connection
+  .read("table")
+  .then((results) => {
     console.log(results);
-  }
-);
-```
-
-## Using Prepared Statements
-
-With MySQL2 you also get the prepared statements. With prepared statements MySQL doesn't have to prepare plan for same query everytime, this results in better performance. If you don't know why they are important, please check these discussions
-
-- [How prepared statements can protect from SQL Injection attacks](http://stackoverflow.com/questions/8263371/how-can-prepared-statements-protect-from-sql-injection-attacks)
-
-MySQL provides `execute` helper which will prepare and query the statement. You can also manually prepare / unprepare statement with `prepare` / `unprepare` methods.
-
-```js
-// get the client
-const mysql = require("mysql2");
-
-// create the connection to database
-const connection = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  database: "test",
-});
-
-// execute will internally call prepare and query
-connection.execute(
-  "SELECT * FROM `table` WHERE `name` = ? AND `age` > ?",
-  ["Rick C-137", 53],
-  function (err, results, fields) {
-    console.log(results); // results contains rows returned by server
-    console.log(fields); // fields contains extra meta data about results, if available
-
-    // If you execute same statement again, it will be picked from a LRU cache
-    // which will save query preparation time and give better performance
-  }
-);
-```
-
-## Using connection pools
-
-Connection pools help reduce the time spent connecting to the MySQL server by reusing a previous connection, leaving them open instead of closing when you are done with them.
-
-This improves the latency of queries as you avoid all of the overhead that comes with establishing a new connection.
-
-```js
-// get the client
-const mysql = require("mysql2");
-
-// Create the connection pool. The pool-specific settings are the defaults
-const pool = mysql.createPool({
-  host: "localhost",
-  user: "root",
-  database: "test",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
-```
-
-The pool does not create all connections upfront but creates them on demand until the connection limit is reached.
-
-You can use the pool in the same way as connections (using `pool.query()` and `pool.execute()`):
-
-```js
-// For pool initialization, see above
-pool.query("SELECT field FROM atable", function (err, rows, fields) {
-  // Connection is automatically released when query resolves
-});
-```
-
-Alternatively, there is also the possibility of manually acquiring a connection from the pool and returning it later:
-
-```js
-// For pool initialization, see above
-pool.getConnection(function (err, conn) {
-  // Do something with the connection
-  conn.query(/* ... */);
-  // Don't forget to release the connection when finished!
-  pool.releaseConnection(conn);
-});
-```
-
-## Using Promise Wrapper
-
-MySQL2 also support Promise API. Which works very well with ES7 async await.
-
-<!--eslint-disable-next-block-->
-
-```js
-async function main() {
-  // get the client
-  const mysql = require("mysql2/promise");
-  // create the connection
-  const connection = await mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    database: "test",
-  });
-  // query database
-  const [
-    rows,
-    fields,
-  ] = await connection.execute(
-    "SELECT * FROM `table` WHERE `name` = ? AND `age` > ?",
-    ["Morty", 14]
-  );
-}
-```
-
-MySQL2 use default `Promise` object available in scope. But you can choose which `Promise` implementation you want to use
-
-<!--eslint-disable-next-block-->
-
-```js
-// get the client
-const mysql = require("mysql2/promise");
-
-// get the promise implementation, we will use bluebird
-const bluebird = require("bluebird");
-
-// create the connection, specify bluebird as Promise
-const connection = await mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  database: "test",
-  Promise: bluebird,
-});
-
-// query database
-const [
-  rows,
-  fields,
-] = await connection.execute(
-  "SELECT * FROM `table` WHERE `name` = ? AND `age` > ?",
-  ["Morty", 14]
-);
-```
-
-MySQL2 also exposes a .promise() function on Pools, so you can create a promise/non-promise connections from the same pool
-
-```js
-async function main() {
-  // get the client
-  const mysql = require('mysql2');
-  // create the pool
-  const pool = mysql.createPool({host:'localhost', user: 'root', database: 'test'});
-  // now get a Promise wrapped instance of that pool
-  const promisePool = pool.promise();
-  // query database using promises
-  const [rows,fields] = await promisePool.query("SELECT 1");
-```
-
-MySQL2 exposes a .promise() function on Connections, to "upgrade" an existing non-promise connection to use promise
-
-```js
-// get the client
-const mysql = require("mysql2");
-// create the connection
-const con = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  database: "test",
-});
-con
-  .promise()
-  .query("SELECT 1")
-  .then(([rows, fields]) => {
-    console.log(rows);
   })
-  .catch(console.log)
-  .then(() => con.end());
+  .catch((err) => {
+    console.log(err);
+  });
+
+// Retrieve all entries with certain column
+connection
+  .read("table", { fields: ["column1", "column2"] })
+  .then((results) => {
+    console.log(results);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+// Retrieve entry by id
+connection
+  .read("table", { id: 1 })
+  .then((results) => {
+    console.log(results);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+// Retrieved entry by id with certain column
+connection
+  .read("table", { id: 1, fields: ["column1", "column2"] })
+  .then((results) => {
+    console.log(results);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 ```
 
-## API and Configuration
+## Configuration
 
-MySQL2 is mostly API compatible with [Node MySQL][node-mysql]. You should check their API documentation to see all available API options.
-
-If you find any incompatibility with [Node MySQL][node-mysql], Please report via Issue tracker. We will fix reported incompatibility on priority basis.
-
-## Documentation
-
-You can find more detailed documentation [here](https://github.com/sidorares/node-mysql2/tree/master/documentation). You should also check various code [examples](https://github.com/sidorares/node-mysql2/tree/master/examples) to understand advanced concepts.
+Configuration for Crudite is basically a config object that you provide to MySQL2 createPool() method. You should check their API documentation to see all available API options.
 
 ## Acknowledgements
 
-- Internal protocol is written by @sidorares [MySQL-Native](https://github.com/sidorares/nodejs-mysql-native)
-- Constants, SQL parameters interpolation, Pooling, `ConnectionConfig` class taken from [node-mysql](https://github.com/mysqljs/mysql)
-- SSL upgrade code based on @TooTallNate [code](https://gist.github.com/TooTallNate/848444)
-- Secure connection / compressed connection api flags compatible to [MariaSQL](https://github.com/mscdex/node-mariasql/) client.
-- [Contributors](https://github.com/sidorares/node-mysql2/graphs/contributors)
+- The syntax is inspired by [Directus JavascriptSDK](https://docs.directus.io/reference/sdk-js.html#reference)
+- The promise-based query method is inspired by Michal Mecinski's tutorial: [Node.js, MySQL and promises](https://codeburst.io/node-js-mysql-and-promises-4c3be599909b)
 
 ## Contributing
 
-Want to improve something in `node-mysql2`. Please check [Contributing.md](https://github.com/sidorares/node-mysql2/blob/master/Contributing.md) for detailed instruction on how to get started.
-
-[npm-image]: https://img.shields.io/npm/v/mysql2.svg
-[npm-url]: https://npmjs.org/package/mysql2
-[node-version-image]: http://img.shields.io/node/v/mysql2.svg
-[node-version-url]: http://nodejs.org/download/
-[travis-image]: https://img.shields.io/travis/sidorares/node-mysql2/master.svg?label=linux
-[travis-url]: https://travis-ci.org/sidorares/node-mysql2
-[appveyor-image]: https://img.shields.io/appveyor/ci/sidorares/node-mysql2/master.svg?label=windows
-[appveyor-url]: https://ci.appveyor.com/project/sidorares/node-mysql2
-[downloads-image]: https://img.shields.io/npm/dm/mysql2.svg
-[downloads-url]: https://npmjs.org/package/mysql2
-[license-url]: https://github.com/sidorares/node-mysql2/blob/master/License
-[license-image]: https://img.shields.io/npm/l/mysql2.svg?maxAge=2592000
-[node-mysql]: https://github.com/mysqljs/mysql
-[mysql-native]: https://github.com/sidorares/nodejs-mysql-native
+Found bug or want to improve something in `crudite`? Email me at jalurumekso@gmail.com
