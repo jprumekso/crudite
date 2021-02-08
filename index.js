@@ -32,6 +32,7 @@ class Crudite {
   }
 
   create(table, data) {
+    const { data } = params;
     // Extract all column that'll be populated
     const columns = Object.keys(data);
     const placeholders = columns.map(() => "?");

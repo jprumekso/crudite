@@ -5,7 +5,7 @@
 
 **Disclaimer**
 
-This library is still at a very early stage. Use it at your own risk. 
+This library hasn't been tested for various and complex use case, so use it at your own risk. 
 
 
 **Table of contents**
@@ -42,8 +42,8 @@ That's the purpose of this library. It provides us a simple promise-based method
 // Crudite way of reading MySQL table
 db.read("table").then((results) => {
   console.log(results);
-}).catch((err) => {
-  console.log(err);
+}).catch((error) => {
+  console.log(error);
 });
 ```
 
@@ -79,12 +79,22 @@ To perform CRUD, we simply call the available crud method on the Crudite instanc
 To create an entry we need to pass the table name (string) as the first argument and an object with a property named data - that contain the key-value pair for each table column - as second argument:
 
 ```js
+// Promise 
 db.create("table", { data: { column1: "value", column2: "value" } })
 .then((results) => {
   console.log(results);
-}).catch((err) => {
-  console.log(err);
+}).catch((error) => {
+  console.log(error);
 });
+
+// Async/Await
+async handler() {
+  try {
+    console.log(await db.create("table", { data }));
+  } catch (error) {
+    console.log(error);
+  }
+}
 ```
 
 ### Read
@@ -92,33 +102,66 @@ db.create("table", { data: { column1: "value", column2: "value" } })
 To retrieve all entries, we call read() method and pass the table name as an argument:
 
 ```js
+// Promise
 db.read("table").then((results) => {
   console.log(results);
-}).catch((err) => {
-  console.log(err);
+}).catch((error) => {
+  console.log(error);
 });
+
+// Async/Await
+async handler() {
+  try {
+    const data = await db.read('table');
+    console.log(data);
+  } catch (error) {
+    console.log(error);
+  }
+},
 ```
 
 To retrieve an entry by id, we add the second argument which is an object with id property and (obviously) its value:
 
 ```js
+// Promise
 db.read("table", { id: 1 })
 .then((results) => {
   console.log(results);
-}).catch((err) => {
-  console.log(err);
+}).catch((error) => {
+  console.log(error);
 });
+
+// Async/Await
+async handler() {
+  try {
+    const data = await db.read('table', { id: 1 });
+    console.log(data);
+  } catch (error) {
+    console.log(error);
+  }
+}
 ```
 
 If we want to specify what column returned, add fields property to the second parameter:
 
 ```js
+// Promise
 db.read("table", { id: 1, fields: ["column1", "column2"] })
 .then((results) => {
   console.log(results);
-}).catch((err) => {
-  console.log(err);
+}).catch((error) => {
+  console.log(error);
 });
+
+// Async/Await
+async handler() {
+  try {
+    const data = await db.read('table', { id: 1, fields: ["column1", "column2"] });
+    console.log(data);
+  } catch (error) {
+    console.log(error);
+  }
+}
 ```
 
 ### Update
@@ -126,12 +169,22 @@ db.read("table", { id: 1, fields: ["column1", "column2"] })
 To update an entry, we pass an object with id (integer) and data (object that contain key-value pair of the updated column) property:
 
 ```js
+// Promise
 db.update("table", { id: 1, data: { column1: "Value1", column2: "value" } })
 .then((results) => {
   console.log(results);
-}).catch((err) => {
-  console.log(err);
+}).catch((error) => {
+  console.log(error);
 });
+
+// Async/Await
+async handler() {
+  try {
+    console.log(await db.update('table', { id: 1, data: { column1: "Value1", column2: "value" } }));
+  } catch (error) {
+    console.log(error);
+  }
+},
 ```
 
 ### Delete
@@ -139,12 +192,22 @@ db.update("table", { id: 1, data: { column1: "Value1", column2: "value" } })
 To delete an entry, we pass the table name as first argument and object with id property as second argument:
 
 ```js
+// Promise
 db.delete("table", { id: 1 })
 .then((results) => {
   console.log(results);
-}).catch((err) => {
-  console.log(err);
+}).catch((error) => {
+  console.log(error);
 });
+
+// Async/Await
+async handler(request, h) {
+  try {
+    console.log(await db.delete('table', { id: 1 }));
+  } catch (error) {
+    console.log(error);
+  }
+},
 ```
 
 ## Raw Query
@@ -155,8 +218,8 @@ Need more than basic CRUD query such as a join or are you more comfortable writi
 db.query("SELECT table1.column, table2.column FROM table1 JOIN table2 ON table1.column = table2.column")
 .then((results) => {
   console.log(results);
-}).catch((err) => {
-  console.log(err);
+}).catch((error) => {
+  console.log(error);
 });
 ```
 
@@ -165,8 +228,8 @@ You can even use prepared statement:
 db.query("INSERT INTO table (column1, column2) VALUES (?, ?)", ['value1', 'value2'])
 .then((results) => {
   console.log(results);
-}).catch((err) => {
-  console.log(err);
+}).catch((error) => {
+  console.log(error);
 });
 ```
 
