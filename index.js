@@ -31,7 +31,7 @@ class Crudite {
     });
   }
 
-  create(table, data) {
+  create(table, params) {
     const { data } = params;
     // Extract all column that'll be populated
     const columns = Object.keys(data);
